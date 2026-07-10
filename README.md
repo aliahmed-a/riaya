@@ -4,32 +4,15 @@
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev/)
 [![Riverpod](https://img.shields.io/badge/State_Management-Riverpod-blue.svg)](https://riverpod.dev/)
 [![Routing](https://img.shields.io/badge/Routing-GoRouter-lightgrey.svg)](https://pub.dev/packages/go_router)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A robust, multi-role healthcare management application built with Flutter. **RIAYA** is designed to streamline operations for medical complexes, handling everything from receptionist workflows to doctor-specific clinical dashboards. The project places a strong emphasis on clean architecture, secure networking, and strict separation of concerns.
 
 ---
 
 ## 📑 Table of Contents
-1. [Screenshots](#-screenshots)
-2. [Key Features](#-key-features)
-3. [Tech Stack](#-tech-stack)
-4. [Architecture & Folder Structure](#-architecture--folder-structure)
-5. [Project Status & Roadmap](#-project-status--roadmap)
-6. [Getting Started](#-getting-started)
-7. [Environment Configuration](#-environment-configuration)
-8. [License](#-license)
-9. [Contact](#-contact)
-
----
-
-## 📸 Screenshots
-
-*(Replace these placeholders with actual screenshots or GIFs of your app once ready)*
-
-| Receptionist Portal | Doctor Dashboard | Login / Auth | Dark Mode |
-| :---: | :---: | :---: | :---: |
-| <img src="https://via.placeholder.com/200x400.png?text=Receptionist" width="200"/> | <img src="https://via.placeholder.com/200x400.png?text=Doctor" width="200"/> | <img src="https://via.placeholder.com/200x400.png?text=Login" width="200"/> | <img src="https://via.placeholder.com/200x400.png?text=Dark+Mode" width="200"/> |
+1. [Key Features](#-key-features)
+2. [Tech Stack](#-tech-stack)
+3. [Architecture & Folder Structure](#-architecture--folder-structure)
 
 ---
 
@@ -44,12 +27,12 @@ A robust, multi-role healthcare management application built with Flutter. **RIA
 *   **Synchronous Storage Access:** Data access built on top of asynchronous `SharedPreferences` using Riverpod dependency injection during app initialization.
 *   **Dynamic Theming:** Smooth Light and Dark mode integration managed globally via Riverpod.
 
-### 👩‍💻 Receptionist Portal (Completed)
+### 👩‍💻 Receptionist Portal
 *   Dedicated dashboard for front-desk staff.
 *   Patient registration and intake processing.
 *   Appointment scheduling and queue management.
 
-### 🩺 Doctor Dashboard (In Progress)
+### 🩺 Doctor Dashboard
 *   Secure portal for viewing assigned daily schedules.
 *   Workflows for marking appointments as "Complete".
 *   Digital submission of patient diagnosis notes.
