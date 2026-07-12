@@ -484,7 +484,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
                           child: Icon(Icons.wb_sunny_rounded, color: Colors.blue.shade400, size: 22),
                         ),
                         title: Text(
-                          _getDayName(item.dayOfWeek),
+                          getBackendDayName(item.dayOfWeek), // 🟢 UPDATED: Reads its own dayOfWeek value via custom mapper
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         subtitle: Padding(
@@ -494,7 +494,6 @@ class DoctorDashboardScreen extends ConsumerWidget {
                             style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7), fontSize: 14),
                           ),
                         ),
-                        // 🟢 Trailing delete icon completely removed here
                       ),
                     );
                   },
@@ -507,8 +506,9 @@ class DoctorDashboardScreen extends ConsumerWidget {
     );
   }
 
-  String _getDayName(int day) {
-    switch (day) {
+  // 🟢 UPDATED: Mapping .NET DayOfWeek values cleanly into Flutter UI strings
+  String getBackendDayName(int dayOfWeek) {
+    switch (dayOfWeek) {
       case 0: return 'Sunday';
       case 1: return 'Monday';
       case 2: return 'Tuesday';
@@ -516,7 +516,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
       case 4: return 'Thursday';
       case 5: return 'Friday';
       case 6: return 'Saturday';
-      default: return 'Day Block';
+      default: return 'Unknown';
     }
   }
 

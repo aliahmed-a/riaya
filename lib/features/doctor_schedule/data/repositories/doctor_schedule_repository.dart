@@ -13,6 +13,12 @@ class DoctorScheduleRepository {
   Future<List<DoctorScheduleModel>> getAllSchedules() async {
     try {
       final response = await _dioClient.dio.get('doctorschedules');
+
+      // 🟢 ADDED: Raw log to inspect the incoming data structure and dayOfWeek fields
+      print('=== RAW DOCTOR SCHEDULES API RESPONSE ===');
+      print(response.data);
+      print('=========================================');
+
       final apiResponse = ApiResponse<List<dynamic>>.fromJson(
         response.data,
             (json) => json as List<dynamic>,
