@@ -36,12 +36,12 @@ class AuthRepository {
     }
   }
 
-  // 🟢 ADDED: Fetches the doctor profile to get the integer ID safely
-  Future<int?> getDoctorProfileId() async {
+  /// 🟢 UPDATED: Fetches the full doctor profile to return both ID and Specialization
+  Future<Map<String, dynamic>?> getDoctorProfileData() async {
     try {
       final response = await _dioClient.dio.get('doctors/me');
 
-      // 🟢 Temporary debug print so you can see exactly what the backend sent
+      // Temporary debug print so you can see exactly what the backend sent
       print('=== DOCTOR PROFILE RAW JSON ===');
       print(response.data);
 
@@ -51,15 +51,22 @@ class AuthRepository {
 
         // Look for either 'id' or 'doctorId'
         final rawId = data['id'] ?? data['doctorId'];
+        final specialization = data['specializationName'] as String?;
 
+        int? parsedId;
         if (rawId != null) {
           // Safely parse it whether the backend sent an int or a String
-          if (rawId is int) return rawId;
-          if (rawId is String) return int.tryParse(rawId);
+          if (rawId is int) parsedId = rawId;
+          if (rawId is String) parsedId = int.tryParse(rawId);
         }
+
+        return {
+          'doctorId': parsedId,
+          'specializationName': specialization,
+        };
       }
 
-      print('Warning: Doctor profile fetched, but ID was not found in the JSON.');
+      print('Warning: Doctor profile fetched, but properties were not structured correctly.');
       return null;
     } catch (e) {
       print('Failed to fetch doctor profile: $e');

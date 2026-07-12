@@ -800,46 +800,115 @@ class _AppointmentBookingWizardState extends ConsumerState<_AppointmentBookingWi
               ),
               const Divider(height: 24),
 
-              doctorsAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (e, s) => Text('Doctor Fetch Failure: $e', style: const TextStyle(color: Colors.red)),
-                data: (List<LookupResource> docs) => DropdownButtonFormField<String>(
-                  dropdownColor: theme.colorScheme.surface,
-                  decoration: InputDecoration(
-                      labelText: 'Assign Medical Officer *',
-                      filled: true,
-                      fillColor: inputFill,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
+              // 🟢 EXTRACTED MEDICAL OFFICER LABEL
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'Assign Medical Officer *',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
                   ),
-                  value: _selectedDoctorId,
-                  items: docs.map<DropdownMenuItem<String>>((LookupResource d) => DropdownMenuItem<String>(
-                      value: d.id.toString(), // ensure ID is string
-                      child: Text(d.name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500))
-                  )).toList(),
-                  onChanged: (val) => setState(() => _selectedDoctorId = val),
-                  validator: (v) => v == null ? 'Please select a practitioner' : null,
-                ),
-              ),
-              const SizedBox(height: 12),
+                  doctorsAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (e, s) => Text('Doctor Fetch Failure: $e', style: const TextStyle(color: Colors.red)),
+                    data: (List<LookupResource> docs) => DropdownButtonFormField<String>(
+                      isExpanded: true, // Prevents overflow issues with longer names/specialties
+                      dropdownColor: theme.colorScheme.surface,
+                      decoration: InputDecoration(
+                        // 🟢 REMOVED labelText from here
+                          filled: true,
+                          fillColor: inputFill,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
+                      ),
+                      value: _selectedDoctorId,
+                      items: docs.map<DropdownMenuItem<String>>((LookupResource d) {
 
-              roomsAsync.when(
-                loading: () => const SizedBox(),
-                error: (e, s) => const SizedBox(),
-                data: (List<LookupResource> rooms) => DropdownButtonFormField<String>(
-                  dropdownColor: theme.colorScheme.surface,
-                  decoration: InputDecoration(
-                      labelText: 'Clinic Allocation Room (Optional)',
-                      filled: true,
-                      fillColor: inputFill,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
+                        final String doctorSpecialty = d.specializationName ?? 'General Practice';
+
+                        return DropdownMenuItem<String>(
+                            value: d.id.toString(),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                      d.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.w600)
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    doctorSpecialty,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: theme.colorScheme.primary
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => _selectedDoctorId = val),
+                      validator: (v) => v == null ? 'Please select a practitioner' : null,
+                    ),
                   ),
-                  value: _selectedRoomId,
-                  items: rooms.map<DropdownMenuItem<String>>((LookupResource r) => DropdownMenuItem<String>(
-                      value: r.id.toString(), // ensure ID is string
-                      child: Text(r.name, style: const TextStyle(fontWeight: FontWeight.w500))
-                  )).toList(),
-                  onChanged: (val) => setState(() => _selectedRoomId = val),
-                ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🟢 EXTRACTED ROOM LABEL
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'Clinic Allocation Room (Optional)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                  roomsAsync.when(
+                    loading: () => const SizedBox(),
+                    error: (e, s) => const SizedBox(),
+                    data: (List<LookupResource> rooms) => DropdownButtonFormField<String>(
+                      dropdownColor: theme.colorScheme.surface,
+                      decoration: InputDecoration(
+                        // 🟢 REMOVED labelText from here
+                          filled: true,
+                          fillColor: inputFill,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
+                      ),
+                      value: _selectedRoomId,
+                      items: rooms.map<DropdownMenuItem<String>>((LookupResource r) => DropdownMenuItem<String>(
+                          value: r.id.toString(), // ensure ID is string
+                          child: Text(r.name, style: const TextStyle(fontWeight: FontWeight.w500))
+                      )).toList(),
+                      onChanged: (val) => setState(() => _selectedRoomId = val),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
 

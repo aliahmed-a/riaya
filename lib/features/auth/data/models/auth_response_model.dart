@@ -1,6 +1,7 @@
 class AuthResponse {
   final String userId;
-  final int? doctorId; // 🟢 ADDED: Stores the database integer ID
+  final int? doctorId; // Stores the database integer ID
+  final String? specializationName; // 🟢 ADDED: Stores the dynamic specialty string
   final String token;
   final String refreshToken;
   final DateTime refreshTokenExpiresAtUtc;
@@ -11,6 +12,7 @@ class AuthResponse {
   AuthResponse({
     required this.userId,
     this.doctorId,
+    this.specializationName, // 🟢 ADDED
     required this.token,
     required this.refreshToken,
     required this.refreshTokenExpiresAtUtc,
@@ -24,7 +26,8 @@ class AuthResponse {
 
     return AuthResponse(
       userId: rawId.toString(),
-      doctorId: json['doctorId'] as int?, // 🟢 ADDED
+      doctorId: json['doctorId'] as int?,
+      specializationName: json['specializationName'] as String?, // 🟢 ADDED
       token: json['token'] ?? '',
       refreshToken: json['refreshToken'] ?? '',
       refreshTokenExpiresAtUtc: json['refreshTokenExpiresAtUtc'] != null
@@ -39,7 +42,8 @@ class AuthResponse {
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
-      'doctorId': doctorId, // 🟢 ADDED
+      'doctorId': doctorId,
+      'specializationName': specializationName, // 🟢 ADDED
       'token': token,
       'refreshToken': refreshToken,
       'refreshTokenExpiresAtUtc': refreshTokenExpiresAtUtc.toIso8601String(),
@@ -51,13 +55,15 @@ class AuthResponse {
 
   bool get isDoctor => roles.any((role) => role.toLowerCase() == 'doctor');
 
-  // 🟢 ADDED: Allows safely updating the object after fetching the profile
+  // Allows safely updating the object after fetching the profile data
   AuthResponse copyWith({
     int? doctorId,
+    String? specializationName, // 🟢 ADDED
   }) {
     return AuthResponse(
       userId: userId,
       doctorId: doctorId ?? this.doctorId,
+      specializationName: specializationName ?? this.specializationName, // 🟢 ADDED
       token: token,
       refreshToken: refreshToken,
       refreshTokenExpiresAtUtc: refreshTokenExpiresAtUtc,

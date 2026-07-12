@@ -61,11 +61,14 @@ class AuthNotifier extends Notifier<AuthState> {
       // Inject tokens so the subsequent profile fetch request has auth headers
       TokenStorage.storeTokens(authResponse.token, authResponse.refreshToken, authResponse.userId);
 
-      // 🟢 ADDED: Fetch doctor profile integer ID right after token is saved
+      /// 🟢 UPDATED: Fetch doctor profile data data (ID + Specialization) right after login
       if (authResponse.isDoctor) {
-        final int? fetchedDoctorId = await repository.getDoctorProfileId();
-        if (fetchedDoctorId != null) {
-          authResponse = authResponse.copyWith(doctorId: fetchedDoctorId);
+        final profileData = await repository.getDoctorProfileData();
+        if (profileData != null) {
+          authResponse = authResponse.copyWith(
+            doctorId: profileData['doctorId'] as int?,
+            specializationName: profileData['specializationName'] as String?,
+          );
         }
       }
 

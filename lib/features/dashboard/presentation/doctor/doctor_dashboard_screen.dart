@@ -20,6 +20,9 @@ class DoctorDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final doctorName = authState.user?.fullName ?? 'Doctor Workspace';
+
+    // 🟢 DYNAMIC LOGIC: Read the specialization dynamically from the auth response state
+    final specialization = authState.user?.specializationName ?? 'General Practitioner';
     final theme = Theme.of(context);
 
     return DefaultTabController(
@@ -28,12 +31,12 @@ class DoctorDashboardScreen extends ConsumerWidget {
         backgroundColor: theme.scaffoldBackgroundColor, // Adaptive background
         appBar: AppBar(
           elevation: 0,
-          title: const Text('Clinical Workspace', style: TextStyle(fontWeight: FontWeight.w600,fontSize: 18,)),
+          title: const Text('Clinical Workspace', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: Colors.white,
           centerTitle: false,
           actions: [
-            // 🟢 Theme Toggle Button
+            // Theme Toggle Button
             IconButton(
               icon: Icon(
                 theme.brightness == Brightness.dark
@@ -72,7 +75,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _buildPatientQueueTab(context, ref, doctorName, theme),
+            _buildPatientQueueTab(context, ref, doctorName, specialization, theme), // 🟢 UPDATED: Passed specialization parameter
             _buildScheduleManagementTab(context, ref, theme),
           ],
         ),
@@ -83,7 +86,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
   // ==========================================
   // TAB 1: PATIENT QUEUE DESIGN
   // ==========================================
-  Widget _buildPatientQueueTab(BuildContext context, WidgetRef ref, String doctorName, ThemeData theme) {
+  Widget _buildPatientQueueTab(BuildContext context, WidgetRef ref, String doctorName, String specialization, ThemeData theme) {
     final queueState = ref.watch(upcomingAppointmentsProvider);
 
     return RefreshIndicator(
@@ -95,7 +98,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWelcomeHeader(context, doctorName, theme, ref),
+            _buildWelcomeHeader(context, doctorName, specialization, theme, ref), // 🟢 UPDATED: Passed specialization parameter
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,7 +161,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeHeader(BuildContext context, String doctorName, ThemeData theme, WidgetRef ref) {
+  Widget _buildWelcomeHeader(BuildContext context, String doctorName, String specialization, ThemeData theme, WidgetRef ref) {
     Color indicatorColor = Colors.greenAccent;
     String statusText = 'Connected to Clinical Node';
 
@@ -223,9 +226,11 @@ class DoctorDashboardScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Clinical Officer On-Duty',
-                style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.5),
+
+              // 🟢 UPDATED: Using the dynamic specialization value here instead of the static string
+              Text(
+                specialization,
+                style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.5),
               ),
               const SizedBox(height: 4),
               Text(
@@ -484,7 +489,7 @@ class DoctorDashboardScreen extends ConsumerWidget {
                           child: Icon(Icons.wb_sunny_rounded, color: Colors.blue.shade400, size: 22),
                         ),
                         title: Text(
-                          getBackendDayName(item.dayOfWeek), // 🟢 UPDATED: Reads its own dayOfWeek value via custom mapper
+                          getBackendDayName(item.dayOfWeek), // Reads its own dayOfWeek value via custom mapper
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         subtitle: Padding(
@@ -506,7 +511,6 @@ class DoctorDashboardScreen extends ConsumerWidget {
     );
   }
 
-  // 🟢 UPDATED: Mapping .NET DayOfWeek values cleanly into Flutter UI strings
   String getBackendDayName(int dayOfWeek) {
     switch (dayOfWeek) {
       case 0: return 'Sunday';

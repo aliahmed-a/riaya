@@ -5,13 +5,19 @@ import 'api_response.dart';
 class LookupResource {
   final int id;
   final String name;
+  final String? specializationName; // 🟢 ADDED: Captures the doctor's dynamic specialty string
 
-  LookupResource({required this.id, required this.name});
+  LookupResource({
+    required this.id,
+    required this.name,
+    this.specializationName, // 🟢 ADDED
+  });
 
   factory LookupResource.fromJson(Map<String, dynamic> json) {
     return LookupResource(
       id: json['id'] as int,
       name: (json['name'] ?? json['fullName'] ?? '') as String,
+      specializationName: json['specializationName'] as String?, // 🟢 ADDED
     );
   }
 }
