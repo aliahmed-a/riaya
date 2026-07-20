@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class PatientModel {
   final int id;
   final String fullName;

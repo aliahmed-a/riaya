@@ -25,14 +25,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isGoingToLogin ? null : '/login';
       }
 
+      final roles = authState.user?.roles.map((r) => r.toLowerCase()).toList() ?? [];
+      final isDoctor = roles.contains('doctor');
+      final isReceptionist = roles.contains('receptionist');
+      final homeRoute = isDoctor
+          ? '/doctor-dashboard'
+          : isReceptionist
+              ? '/receptionist-dashboard'
+              : null;
+
       // Guard Rule 2: If already logged-in but hit /login, auto-bounce them back to work boards
       if (isGoingToLogin) {
-        final roles = authState.user?.roles.map((r) => r.toLowerCase()).toList() ?? [];
-        if (roles.contains('doctor')) {
-          return '/doctor-dashboard';
-        } else if (roles.contains('receptionist')) {
-          return '/receptionist-dashboard';
-        }
+        return homeRoute;
+      }
+
+      // Guard Rule 3: Block cross-role access to the wrong dashboard (e.g. a
+      // receptionist session deep-linking into /doctor-dashboard) and send
+      // them back to whichever dashboard actually matches their role.
+      final location = state.matchedLocation;
+      if (location == '/doctor-dashboard' && !isDoctor) {
+        return homeRoute ?? '/login';
+      }
+      if (location == '/receptionist-dashboard' && !isReceptionist) {
+        return homeRoute ?? '/login';
       }
 
       // Proceed normally for any explicit deeper matching links

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riaya/core/utils/storage_service.dart';
 import 'package:riaya/features/auth/data/models/auth_response_model.dart';
@@ -35,8 +36,9 @@ class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
     try {
-      final storage = ref.read(storageServiceProvider);
-      final savedSession = storage.getUserSession();
+      // Preloaded synchronously in main() before runApp so this can restore
+      // the session without turning the whole auth provider async.
+      final savedSession = ref.read(initialSessionProvider);
 
       if (savedSession != null && savedSession.isNotEmpty) {
         final Map<String, dynamic> userMap = jsonDecode(savedSession);
@@ -76,7 +78,9 @@ class AuthNotifier extends Notifier<AuthState> {
         final storage = ref.read(storageServiceProvider);
         await storage.saveUserSession(jsonEncode(authResponse.toJson()));
       } catch (e) {
-        print("Storage Warning: Could not save session to disk: $e");
+        if (kDebugMode) {
+          debugPrint("Storage Warning: Could not save session to disk: $e");
+        }
       }
 
       state = AuthState(status: AuthStatus.authenticated, user: authResponse);
@@ -90,9 +94,13 @@ class AuthNotifier extends Notifier<AuthState> {
 
   void logout() {
     TokenStorage.storeTokens(null, null, null);
-    try {
-      ref.read(storageServiceProvider).clearSession();
-    } catch (e) {}
+    // Fire-and-forget: clearing the on-disk session shouldn't block the UI
+    // from immediately reflecting the logged-out state.
+    ref.read(storageServiceProvider).clearSession().catchError((e) {
+      if (kDebugMode) {
+        debugPrint("Storage Warning: Could not clear session on logout: $e");
+      }
+    });
     state = AuthState(status: AuthStatus.unauthenticated);
   }
 }

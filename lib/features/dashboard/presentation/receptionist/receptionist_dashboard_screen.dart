@@ -6,14 +6,12 @@ import 'package:intl/intl.dart';
 // Import your theme and provider
 import '../../../../core/theme/app_theme.dart';
 
-import '../../../../core/network/lookup_resources.dart';
 import '../../../appointments/data/models/upcoming_appointment_model.dart';
 import '../../../appointments/presentation/providers/upcoming_appointments_provider.dart';
 import '../../../appointments/data/repositories/appointment_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../patients/data/repositories/patient_repository.dart';
-import '../../../patients/data/models/patient_model.dart';
-import '../../../billing/data/repositories/billing_repository.dart';
+import 'widgets/billing_checkout_sheet.dart';
+import 'widgets/appointment_booking_wizard.dart';
 
 class ReceptionistDashboardScreen extends ConsumerWidget {
   const ReceptionistDashboardScreen({super.key});
@@ -117,7 +115,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildStaffHeader(BuildContext context, String staffName, ThemeData theme, WidgetRef ref) {
-    Color indicatorColor = Colors.greenAccent;
+    Color indicatorColor = theme.statusColors.success;
     String statusText = 'Live Network Routing Enabled';
 
     return Container(
@@ -132,7 +130,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.secondary.withOpacity(0.3),
+            color: theme.colorScheme.secondary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -146,7 +144,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
             child: Icon(
               Icons.support_agent_rounded,
               size: 120,
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
             ),
           ),
           Column(
@@ -155,7 +153,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -167,7 +165,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                           color: indicatorColor,
                           shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: indicatorColor.withOpacity(0.6), blurRadius: 6, spreadRadius: 1)]
+                          boxShadow: [BoxShadow(color: indicatorColor.withValues(alpha: 0.6), blurRadius: 6, spreadRadius: 1)]
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -199,7 +197,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: queueState.maybeWhen(
@@ -215,12 +213,12 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
   Widget _buildErrorCard(String error, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: theme.statusColors.danger.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        border: Border.all(color: theme.statusColors.danger.withValues(alpha: 0.3)),
       ),
       padding: const EdgeInsets.all(16.0),
-      child: Text('Sync Error: $error', style: const TextStyle(color: Colors.red)),
+      child: Text('Sync Error: $error', style: TextStyle(color: theme.statusColors.danger)),
     );
   }
 
@@ -233,7 +231,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.03),
+              color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4)
           )
@@ -244,15 +242,15 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.05),
+              color: theme.colorScheme.primary.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.calendar_today_rounded, size: 56, color: theme.colorScheme.primary.withOpacity(0.5)),
+            child: Icon(Icons.calendar_today_rounded, size: 56, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
           ),
           const SizedBox(height: 20),
           Text('No appointments scheduled', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('Use the button below to add your first check-in encounter record.', textAlign: TextAlign.center, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6), fontSize: 14)),
+          Text('Use the button below to add your first check-in encounter record.', textAlign: TextAlign.center, style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6), fontSize: 14)),
         ],
       ),
     );
@@ -268,23 +266,23 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
         final timeString = DateFormat('hh:mm a').format(app.appointmentDate);
         final statusLower = app.status.toLowerCase();
 
-        Color badgeColor = Colors.amber.withOpacity(0.15);
-        Color textBadgeColor = Colors.amber.shade700;
+        Color badgeColor = theme.statusColors.warning.withValues(alpha: 0.15);
+        Color textBadgeColor = theme.statusColors.warning;
         if (statusLower.contains('check')) {
-          badgeColor = Colors.blue.withOpacity(0.15);
-          textBadgeColor = Colors.blue.shade700;
+          badgeColor = theme.statusColors.info.withValues(alpha: 0.15);
+          textBadgeColor = theme.statusColors.info;
         } else if (statusLower == 'completed') {
-          badgeColor = Colors.green.withOpacity(0.15);
-          textBadgeColor = Colors.green.shade700;
+          badgeColor = theme.statusColors.success.withValues(alpha: 0.15);
+          textBadgeColor = theme.statusColors.success;
         } else if (statusLower == 'cancelled') {
-          badgeColor = Colors.red.withOpacity(0.15);
-          textBadgeColor = Colors.red.shade700;
+          badgeColor = theme.statusColors.danger.withValues(alpha: 0.15);
+          textBadgeColor = theme.statusColors.danger;
         } else if (statusLower == 'confirmed') {
-          badgeColor = Colors.teal.withOpacity(0.15);
-          textBadgeColor = Colors.teal.shade700;
+          badgeColor = theme.statusColors.confirmed.withValues(alpha: 0.15);
+          textBadgeColor = theme.statusColors.confirmed;
         } else if (statusLower == 'noshow' || statusLower == 'no-show') {
-          badgeColor = theme.dividerColor.withOpacity(0.2);
-          textBadgeColor = theme.textTheme.bodyMedium!.color!.withOpacity(0.8);
+          badgeColor = theme.dividerColor.withValues(alpha: 0.2);
+          textBadgeColor = theme.textTheme.bodyMedium!.color!.withValues(alpha: 0.8);
         }
 
         return Container(
@@ -294,7 +292,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.03),
+                color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -309,7 +307,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
               leading: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.person_rounded, color: theme.colorScheme.primary, size: 24),
@@ -322,12 +320,12 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.schedule_rounded, size: 14, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5)),
+                        Icon(Icons.schedule_rounded, size: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '$timeString • Dr. ${app.doctorName}',
-                            style: TextStyle(fontSize: 13, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)),
+                            style: TextStyle(fontSize: 13, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6)),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -336,12 +334,12 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.meeting_room_rounded, size: 14, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5)),
+                        Icon(Icons.meeting_room_rounded, size: 14, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             'Room: ${app.clinicRoomName ?? 'Not Assigned'}',
-                            style: TextStyle(fontSize: 13, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)),
+                            style: TextStyle(fontSize: 13, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6)),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -367,8 +365,8 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                             icon: const Icon(Icons.thumb_up_alt_rounded, size: 16),
                             label: const Text('Confirm Appt'),
                             style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.teal.shade500,
-                                side: BorderSide(color: Colors.teal.shade500.withOpacity(0.5)),
+                                foregroundColor: theme.statusColors.confirmed,
+                                side: BorderSide(color: theme.statusColors.confirmed.withValues(alpha: 0.5)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 padding: const EdgeInsets.symmetric(vertical: 12)
                             ),
@@ -381,8 +379,8 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                             icon: const Icon(Icons.cancel_rounded, size: 16),
                             label: const Text('Cancel Appt'),
                             style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red.shade400,
-                                side: BorderSide(color: Colors.red.shade400.withOpacity(0.5)),
+                                foregroundColor: theme.statusColors.danger,
+                                side: BorderSide(color: theme.statusColors.danger.withValues(alpha: 0.5)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 padding: const EdgeInsets.symmetric(vertical: 12)
                             ),
@@ -413,8 +411,8 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                                     icon: const Icon(Icons.assignment_turned_in_rounded, size: 16),
                                     label: const Text('Check In Patient'),
                                     style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.blue.shade500,
-                                        side: BorderSide(color: Colors.blue.shade500.withOpacity(0.5)),
+                                        foregroundColor: theme.statusColors.info,
+                                        side: BorderSide(color: theme.statusColors.info.withValues(alpha: 0.5)),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                         padding: const EdgeInsets.symmetric(vertical: 12)
                                     ),
@@ -428,8 +426,8 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                                     icon: const Icon(Icons.lock_clock_rounded, size: 16),
                                     label: Text('Check-In opens ${DateFormat('MMM d').format(apptDate)}'),
                                     style: OutlinedButton.styleFrom(
-                                        disabledForegroundColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
-                                        side: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
+                                        disabledForegroundColor: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
+                                        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                         padding: const EdgeInsets.symmetric(vertical: 12)
                                     ),
@@ -450,8 +448,8 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                                   icon: const Icon(Icons.person_off_rounded, size: 16),
                                   label: const Text('No Show'),
                                   style: OutlinedButton.styleFrom(
-                                      foregroundColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                                      side: BorderSide(color: theme.dividerColor.withOpacity(0.3)),
+                                      foregroundColor: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                      side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       padding: const EdgeInsets.symmetric(vertical: 12)
                                   ),
@@ -473,7 +471,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
                         icon: const Icon(Icons.receipt_long_rounded),
                         label: const Text('Generate Billing & Check-Out', style: TextStyle(fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
+                            backgroundColor: theme.statusColors.success,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
@@ -499,11 +497,11 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
       }
       ref.read(upcomingAppointmentsProvider.notifier).refreshQueue();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg), backgroundColor: Colors.green.shade600));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg), backgroundColor: Theme.of(context).statusColors.success));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red.shade700));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Theme.of(context).statusColors.danger));
       }
     }
   }
@@ -513,7 +511,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent, // Controlled by the widget itself
-      builder: (_) => const _AppointmentBookingWizard(),
+      builder: (_) => const AppointmentBookingWizard(),
     );
   }
 
@@ -522,720 +520,7 @@ class ReceptionistDashboardScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _BillingCheckoutSheet(appointment: app),
+      builder: (_) => BillingCheckoutSheet(appointment: app),
     );
-  }
-}
-
-// ============================================================================
-// BILLING WIZARD
-// ============================================================================
-class _BillingCheckoutSheet extends ConsumerStatefulWidget {
-  final UpcomingAppointment appointment;
-  const _BillingCheckoutSheet({required this.appointment});
-
-  @override
-  ConsumerState<_BillingCheckoutSheet> createState() => _BillingCheckoutSheetState();
-}
-
-class _BillingCheckoutSheetState extends ConsumerState<_BillingCheckoutSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController(text: 'Standard Medical Consultation');
-
-  int _selectedPaymentMethod = 0;
-  bool _isProcessing = false;
-  String? _errorMessage;
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _processCheckOut() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final amount = double.parse(_amountController.text.trim());
-      final billingRepo = ref.read(billingRepositoryProvider);
-
-      final invoiceId = await billingRepo.createInvoice(
-        patientId: widget.appointment.patientId,
-        appointmentId: widget.appointment.id,
-        items: [
-          {
-            'description': _descriptionController.text.trim(),
-            'quantity': 1,
-            'unitPrice': amount,
-          }
-        ],
-      );
-
-      final paymentSuccess = await billingRepo.processPayment(
-        invoiceId: invoiceId,
-        amount: amount,
-        paymentMethod: _selectedPaymentMethod,
-      );
-
-      if (paymentSuccess && mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment processed successfully! Patient Check-Out complete.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        throw Exception('Payment authorization failed.');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final inputFill = isDark ? theme.colorScheme.surfaceContainerHighest : Colors.grey.shade50;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor, // Adaptive background
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          top: 24, left: 24, right: 24
-      ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Billing & Check-Out', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                    style: IconButton.styleFrom(backgroundColor: inputFill),
-                  ),
-                ],
-              ),
-              Text('Patient: ${widget.appointment.patientName}', style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6), fontSize: 15)),
-              const Divider(height: 32),
-
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                    labelText: 'Invoice Item Description',
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
-                ),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Total Amount Due',
-                  filled: true,
-                  fillColor: inputFill,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Please enter amount';
-                  if (double.tryParse(v) == null) return 'Invalid number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<int>(
-                value: _selectedPaymentMethod,
-                dropdownColor: theme.colorScheme.surface,
-                decoration: InputDecoration(
-                    labelText: 'Payment Method',
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
-                ),
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('Cash', style: TextStyle(fontWeight: FontWeight.w500))),
-                  DropdownMenuItem(value: 1, child: Text('Credit / Debit Card', style: TextStyle(fontWeight: FontWeight.w500))),
-                  DropdownMenuItem(value: 2, child: Text('Bank Transfer', style: TextStyle(fontWeight: FontWeight.w500))),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedPaymentMethod = val);
-                },
-              ),
-              const SizedBox(height: 24),
-
-              if (_errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                ),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _processCheckOut,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade700,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))
-                  ),
-                  child: _isProcessing
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Process Payment & Close Invoice', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// APPOINTMENT BOOKING WIZARD
-// ============================================================================
-class _AppointmentBookingWizard extends ConsumerStatefulWidget {
-  const _AppointmentBookingWizard();
-
-  @override
-  ConsumerState<_AppointmentBookingWizard> createState() => _AppointmentBookingWizardState();
-}
-
-class _AppointmentBookingWizardState extends ConsumerState<_AppointmentBookingWizard> {
-  final _formKey = GlobalKey<FormState>();
-
-  String? _selectedDoctorId;
-  String? _selectedRoomId;
-  PatientModel? _selectedPatient;
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-
-  final _searchController = TextEditingController();
-  List<PatientModel> _searchResults = [];
-  bool _isSearching = false;
-  bool _isSaving = false;
-  bool _isRegistering = false;
-
-  String? _errorMessage;
-
-  bool _showRegistrationForm = false;
-  final _regNameController = TextEditingController();
-  final _regPhoneController = TextEditingController();
-  String _regGender = 'Other';
-  DateTime _regDob = DateTime(2000, 1, 1);
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _regNameController.dispose();
-    _regPhoneController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final doctorsAsync = ref.watch(dynamicDoctorsProvider);
-    final roomsAsync = ref.watch(dynamicRoomsProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final inputFill = isDark ? theme.colorScheme.surfaceContainerHighest : Colors.grey.shade50;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor, // Adaptive background
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 20, top: 24, left: 24, right: 24),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Schedule New Encounter', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                    style: IconButton.styleFrom(backgroundColor: inputFill),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-
-              // 🟢 EXTRACTED MEDICAL OFFICER LABEL
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Text(
-                      'Assign Medical Officer *',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-                  doctorsAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (e, s) => Text('Doctor Fetch Failure: $e', style: const TextStyle(color: Colors.red)),
-                    data: (List<LookupResource> docs) => DropdownButtonFormField<String>(
-                      isExpanded: true, // Prevents overflow issues with longer names/specialties
-                      dropdownColor: theme.colorScheme.surface,
-                      decoration: InputDecoration(
-                        // 🟢 REMOVED labelText from here
-                          filled: true,
-                          fillColor: inputFill,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
-                      ),
-                      value: _selectedDoctorId,
-                      items: docs.map<DropdownMenuItem<String>>((LookupResource d) {
-
-                        final String doctorSpecialty = d.specializationName ?? 'General Practice';
-
-                        return DropdownMenuItem<String>(
-                            value: d.id.toString(),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                      d.name,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontWeight: FontWeight.w600)
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    doctorSpecialty,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: theme.colorScheme.primary
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                        );
-                      }).toList(),
-                      onChanged: (val) => setState(() => _selectedDoctorId = val),
-                      validator: (v) => v == null ? 'Please select a practitioner' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // 🟢 EXTRACTED ROOM LABEL
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Text(
-                      'Clinic Allocation Room (Optional)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ),
-                  roomsAsync.when(
-                    loading: () => const SizedBox(),
-                    error: (e, s) => const SizedBox(),
-                    data: (List<LookupResource> rooms) => DropdownButtonFormField<String>(
-                      dropdownColor: theme.colorScheme.surface,
-                      decoration: InputDecoration(
-                        // 🟢 REMOVED labelText from here
-                          filled: true,
-                          fillColor: inputFill,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
-                      ),
-                      value: _selectedRoomId,
-                      items: rooms.map<DropdownMenuItem<String>>((LookupResource r) => DropdownMenuItem<String>(
-                          value: r.id.toString(), // ensure ID is string
-                          child: Text(r.name, style: const TextStyle(fontWeight: FontWeight.w500))
-                      )).toList(),
-                      onChanged: (val) => setState(() => _selectedRoomId = val),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              const Text('Patient Demographic Identity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 12),
-              if (_selectedPatient != null)
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.green.withOpacity(0.3))
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 32),
-                    title: Text(_selectedPatient!.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('DOB: ${DateFormat('yyyy-MM-dd').format(_selectedPatient!.dateOfBirth)} • Phone: ${_selectedPatient!.phoneNumber}'),
-                    trailing: TextButton(
-                      onPressed: () => setState(() => _selectedPatient = null),
-                      child: const Text('Change'),
-                    ),
-                  ),
-                )
-              else if (!_showRegistrationForm) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                            hintText: 'Search patient name...',
-                            prefixIcon: const Icon(Icons.search),
-                            filled: true,
-                            fillColor: inputFill,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _isSearching ? null : _performPatientSearch,
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                      ),
-                      child: _isSearching ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Query'),
-                    ),
-                  ],
-                ),
-                if (_searchResults.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 180),
-                    decoration: BoxDecoration(color: theme.colorScheme.surface, border: Border.all(color: theme.dividerColor.withOpacity(0.1)), borderRadius: BorderRadius.circular(12)),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: _searchResults.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
-                      itemBuilder: (_, i) {
-                        final p = _searchResults[i];
-                        return ListTile(
-                          title: Text(p.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text(p.phoneNumber),
-                          onTap: () => setState(() { _selectedPatient = p; _searchResults.clear(); }),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () => setState(() => _showRegistrationForm = true),
-                  icon: const Icon(Icons.person_add_alt_1),
-                  label: const Text('New Profile Entry (Quick Intake)'),
-                ),
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.02), blurRadius: 8, offset: const Offset(0, 4))]
-                  ),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                          controller: _regNameController,
-                          decoration: InputDecoration(labelText: 'Full Patient Legal Name *', filled: true, fillColor: inputFill, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none))
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                          controller: _regPhoneController,
-                          decoration: InputDecoration(labelText: 'Contact Phone String *', filled: true, fillColor: inputFill, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none)),
-                          keyboardType: TextInputType.phone
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('DOB: ${DateFormat('yyyy-MM-dd').format(_regDob)}', style: const TextStyle(fontWeight: FontWeight.w500)),
-                          TextButton(
-                            onPressed: () async {
-                              final picked = await showDatePicker(context: context, initialDate: _regDob, firstDate: DateTime(1920), lastDate: DateTime.now());
-                              if (picked != null) setState(() => _regDob = picked);
-                            },
-                            child: const Text('Pick Date'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      DropdownButtonFormField<String>(
-                        value: _regGender,
-                        dropdownColor: theme.colorScheme.surface,
-                        decoration: InputDecoration(filled: true, fillColor: inputFill, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none)),
-                        items: const [DropdownMenuItem(value: 'Male', child: Text('Male')), DropdownMenuItem(value: 'Female', child: Text('Female')), DropdownMenuItem(value: 'Other', child: Text('Other'))],
-                        onChanged: (v) => setState(() => _regGender = v ?? 'Other'),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(onPressed: _isRegistering ? null : () => setState(() => _showRegistrationForm = false), child: Text('Back', style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)))),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: _isRegistering ? null : _performQuickRegistration,
-                            style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                            child: _isRegistering
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Text('Register Core Profile'),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-
-              const Text('Encounter Slot Scheduling', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: _pickEncounterDate,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        decoration: BoxDecoration(color: inputFill, borderRadius: BorderRadius.circular(12)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(DateFormat('yyyy-MM-dd').format(_selectedDate), style: const TextStyle(fontWeight: FontWeight.w600)),
-                            Icon(Icons.date_range_rounded, size: 20, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: InkWell(
-                      onTap: _pickEncounterTime,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        decoration: BoxDecoration(color: inputFill, borderRadius: BorderRadius.circular(12)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(_selectedTime.format(context), style: const TextStyle(fontWeight: FontWeight.w600)),
-                            Icon(Icons.access_time_rounded, size: 20, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 40),
-
-              if (_errorMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _submitAppointmentPayload,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))
-                  ),
-                  child: _isSaving ? const CircularProgressIndicator(color: Colors.white) : const Text('Authorize & Commit Schedule Slot', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _performPatientSearch() async {
-    if (_searchController.text.trim().isEmpty) return;
-    setState(() => _isSearching = true);
-    try {
-      final res = await ref.read(patientRepositoryProvider).searchPatients(query: _searchController.text.trim());
-      setState(() => _searchResults = res);
-    } catch (_) {
-      setState(() => _searchResults = []);
-    } finally {
-      setState(() => _isSearching = false);
-    }
-  }
-
-  Future<void> _performQuickRegistration() async {
-    if (_regNameController.text.trim().isEmpty || _regPhoneController.text.trim().isEmpty) return;
-    setState(() => _isRegistering = true);
-    try {
-      final request = CreatePatientRequest(
-        fullName: _regNameController.text.trim(),
-        phoneNumber: _regPhoneController.text.trim(),
-        dateOfBirth: _regDob,
-        gender: _regGender,
-      );
-
-      final profile = await ref.read(patientRepositoryProvider).createPatient(request);
-      if (mounted) {
-        setState(() { _selectedPatient = profile; _showRegistrationForm = false; });
-      }
-    } catch (e) {
-      String errorMessage = e.toString().replaceAll('Exception: ', '');
-      if (errorMessage.toLowerCase().contains('phone number already exists') ||
-          errorMessage.toLowerCase().contains('conflict 409')) {
-        errorMessage = "A patient with this phone number already exists in database. Please use search instead.";
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red.shade700
-        ));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isRegistering = false);
-      }
-    }
-  }
-
-  Future<void> _pickEncounterDate() async {
-    final picked = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 90)));
-    if (picked != null) setState(() => _selectedDate = picked);
-  }
-
-  Future<void> _pickEncounterTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _selectedTime);
-    if (picked != null) setState(() => _selectedTime = picked);
-  }
-
-  Future<void> _submitAppointmentPayload() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _errorMessage = null;
-    });
-
-    if (_selectedPatient == null) {
-      setState(() {
-        _errorMessage = 'Verification error: Please allocate a registered patient profiling card first.';
-      });
-      return;
-    }
-
-    setState(() => _isSaving = true);
-    try {
-      final combinedDateTime = DateTime(
-        _selectedDate.year, _selectedDate.month, _selectedDate.day,
-        _selectedTime.hour, _selectedTime.minute,
-      );
-
-      final success = await ref.read(appointmentRepositoryProvider).createAppointment(
-        doctorId: int.parse(_selectedDoctorId!),
-        patientId: _selectedPatient!.id,
-        clinicRoomId: _selectedRoomId != null ? int.tryParse(_selectedRoomId!) : null,
-        appointmentDate: combinedDateTime,
-      );
-
-      if (success && mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        ref.read(upcomingAppointmentsProvider.notifier).refreshQueue();
-        Navigator.pop(context);
-        messenger.showSnackBar(const SnackBar(content: Text('Encounter Slot Registered and Confirmed! 🗓️'), backgroundColor: Colors.green));
-      } else {
-        throw Exception('Encounter slot reservation rejected by medical controller validations.');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
   }
 }

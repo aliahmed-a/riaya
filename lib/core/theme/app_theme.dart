@@ -38,6 +38,7 @@ class AppTheme {
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      extensions: [AppStatusColors.light],
     );
   }
 
@@ -69,8 +70,81 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      extensions: [AppStatusColors.dark],
     );
   }
+}
+
+/// Semantic status colors for appointment/queue badges and action buttons
+/// (pending, checked-in, confirmed, completed, cancelled, etc). Centralizing
+/// these here means light/dark contrast tuning happens in one place instead
+/// of being hardcoded `Colors.green` / `Colors.red` literals scattered across
+/// the dashboard screens.
+@immutable
+class AppStatusColors extends ThemeExtension<AppStatusColors> {
+  final Color success;
+  final Color warning;
+  final Color danger;
+  final Color info;
+  final Color confirmed;
+
+  const AppStatusColors({
+    required this.success,
+    required this.warning,
+    required this.danger,
+    required this.info,
+    required this.confirmed,
+  });
+
+  static final light = AppStatusColors(
+    success: Colors.green.shade700,
+    warning: Colors.amber.shade700,
+    danger: Colors.red.shade700,
+    info: Colors.blue.shade700,
+    confirmed: Colors.teal.shade700,
+  );
+
+  static final dark = AppStatusColors(
+    success: Colors.green.shade400,
+    warning: Colors.amber.shade300,
+    danger: Colors.red.shade300,
+    info: Colors.blue.shade300,
+    confirmed: Colors.teal.shade300,
+  );
+
+  @override
+  AppStatusColors copyWith({
+    Color? success,
+    Color? warning,
+    Color? danger,
+    Color? info,
+    Color? confirmed,
+  }) {
+    return AppStatusColors(
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      danger: danger ?? this.danger,
+      info: info ?? this.info,
+      confirmed: confirmed ?? this.confirmed,
+    );
+  }
+
+  @override
+  AppStatusColors lerp(ThemeExtension<AppStatusColors>? other, double t) {
+    if (other is! AppStatusColors) return this;
+    return AppStatusColors(
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      danger: Color.lerp(danger, other.danger, t)!,
+      info: Color.lerp(info, other.info, t)!,
+      confirmed: Color.lerp(confirmed, other.confirmed, t)!,
+    );
+  }
+}
+
+/// Convenience accessor: `theme.statusColors.success`
+extension AppThemeStatusColorsX on ThemeData {
+  AppStatusColors get statusColors => extension<AppStatusColors>() ?? AppStatusColors.light;
 }
 
 /// 🟢 PERSISTENT THEME NOTIFIER: Automatically loads & auto-saves choice to SharedPreferences

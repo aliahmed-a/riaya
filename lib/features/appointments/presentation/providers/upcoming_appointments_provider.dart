@@ -3,15 +3,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/upcoming_appointment_model.dart';
 import '../../data/repositories/appointment_repository.dart';
 
+/// Tracks how far a single "finalize consultation" submission has gotten,
+/// so that if it fails partway through and the caller retries with the same
+/// [ConsultationProgress] instance, already-persisted work (the visit
+/// record, and any prescriptions already saved against it) isn't recreated.
+class ConsultationProgress {
+  int? visitId;
+  int prescriptionsSaved = 0;
+}
+
 class UpcomingAppointmentsNotifier extends AsyncNotifier<List<UpcomingAppointment>> {
+  /// Neither dashboard has any push channel from the backend, so the queue
+  /// only ever reflects reality via this background poll or the actions
+  /// below that explicitly refetch after a mutation. If a second device
+  /// changes an appointment's status, this is how the gap gets closed.
+  static const _pollInterval = Duration(seconds: 20);
+
   @override
   FutureOr<List<UpcomingAppointment>> build() async {
+    final timer = Timer.periodic(_pollInterval, (_) => _pollQueue());
+    ref.onDispose(timer.cancel);
     return _fetchQueue();
   }
 
   Future<List<UpcomingAppointment>> _fetchQueue() async {
     final repository = ref.read(appointmentRepositoryProvider);
     return repository.getUpcomingAppointments(days: 7);
+  }
+
+  /// Background poll tick: refetches quietly and only swaps in the new list
+  /// on success. A transient network hiccup shouldn't flash the whole queue
+  /// into a loading/error state while someone's mid-click on it.
+  Future<void> _pollQueue() async {
+    try {
+      final freshData = await _fetchQueue();
+      state = AsyncValue.data(freshData);
+    } catch (_) {
+      // Keep showing the last known-good queue; the next tick will retry.
+    }
   }
 
   /// Pull-to-refresh
@@ -63,24 +92,31 @@ class UpcomingAppointmentsNotifier extends AsyncNotifier<List<UpcomingAppointmen
     required String diagnosis,
     String? notes,
     required List<Map<String, dynamic>> prescriptions,
+    required ConsultationProgress progress,
   }) async {
     try {
       final repository = ref.read(appointmentRepositoryProvider);
 
-      // 1. Post diagnosis payload details to /api/v1/Visits and get the new Visit ID
-      final visitId = await repository.recordClinicalVisit(
+      // 1. Post diagnosis payload details to /api/v1/Visits and get the new Visit ID.
+      // Skip this on a retry (progress.visitId already set) so a transient
+      // failure later in this method can't create a second duplicate visit.
+      progress.visitId ??= await repository.recordClinicalVisit(
         appointmentId: appointmentId,
         symptoms: symptoms,
         diagnosis: diagnosis,
         notes: notes,
       );
 
+      final visitId = progress.visitId;
       if (visitId == null) {
         return 'Could not submit clinical visit records. Visit ID was null.';
       }
 
-      // 2. Loop through and save all prescriptions (if any) tied to the new VisitId
-      for (var p in prescriptions) {
+      // 2. Loop through and save all prescriptions (if any) tied to the new VisitId.
+      // Resume from the first one not yet confirmed saved, so a retry doesn't
+      // re-submit prescriptions that already succeeded.
+      for (var i = progress.prescriptionsSaved; i < prescriptions.length; i++) {
+        final p = prescriptions[i];
         await repository.createPrescription(
           visitId: visitId,
           medicationName: p['medicationName'],
@@ -88,6 +124,7 @@ class UpcomingAppointmentsNotifier extends AsyncNotifier<List<UpcomingAppointmen
           instructions: p['instructions'],
           durationInDays: p['durationInDays'],
         );
+        progress.prescriptionsSaved = i + 1;
       }
 
       // 3. Mark appointment as completed in state engine
@@ -105,6 +142,6 @@ class UpcomingAppointmentsNotifier extends AsyncNotifier<List<UpcomingAppointmen
 
 
 final upcomingAppointmentsProvider =
-AsyncNotifierProvider<UpcomingAppointmentsNotifier, List<UpcomingAppointment>>(() {
+AsyncNotifierProvider.autoDispose<UpcomingAppointmentsNotifier, List<UpcomingAppointment>>(() {
   return UpcomingAppointmentsNotifier();
 });

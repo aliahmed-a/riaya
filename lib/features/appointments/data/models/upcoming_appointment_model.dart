@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class UpcomingAppointment {
   final int id;
   final DateTime appointmentDate;

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riaya/core/network/api_response.dart';
 import 'package:riaya/core/network/dio_client.dart';
@@ -41,10 +42,6 @@ class AuthRepository {
     try {
       final response = await _dioClient.dio.get('doctors/me');
 
-      // Temporary debug print so you can see exactly what the backend sent
-      print('=== DOCTOR PROFILE RAW JSON ===');
-      print(response.data);
-
       if (response.data is Map<String, dynamic>) {
         // Strip the API wrapper if it exists (e.g., if the backend sends {"data": {...}})
         final data = response.data['data'] ?? response.data;
@@ -66,10 +63,14 @@ class AuthRepository {
         };
       }
 
-      print('Warning: Doctor profile fetched, but properties were not structured correctly.');
+      if (kDebugMode) {
+        debugPrint('Warning: Doctor profile fetched, but properties were not structured correctly.');
+      }
       return null;
     } catch (e) {
-      print('Failed to fetch doctor profile: $e');
+      if (kDebugMode) {
+        debugPrint('Failed to fetch doctor profile: $e');
+      }
       return null;
     }
   }
